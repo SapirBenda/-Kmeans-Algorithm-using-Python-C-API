@@ -608,11 +608,11 @@ int check_input_symmetric_matrix(double** input,int number_of_lines, int number_
     }
     return 0;
 }
-/*reset to zero each eigen value has a value less than -0.0001*/
+/*reset to zero each eigen value has a value bigger than -0.00005*/
 void fix_zeros(double** V, int number_of_columns){
     int i;
       for (i = 0; i < number_of_columns; ++i) {
-        if(V[0][i] < 0 && V[0][i] > -0.0001) V[0][i] = 0;
+        if(V[0][i] < 0 && V[0][i] > -0.00005) V[0][i] = 0;    
     } 
 }
 
@@ -681,7 +681,7 @@ double** Spkmeans (int* row, int*col, char* input_filename, int purpose, int k_f
         else
             k = k_from_py;
         
-
+        
         /*U- containing the eigenvectors u1, . . . , uk of Lnorm as columns */
         k_eigenvectors = create_eigenvectors_matrix(eigen_values_vectors,res_col,k);
         if(k_eigenvectors == NULL)return NULL;
