@@ -451,15 +451,14 @@ int comarator(const void* row1, const void* row2){
 int find_k(double** V, int number_of_lines){
     int curr,k =0;
     double max_delta =0,delta;
-    for(curr=0; curr<number_of_lines-1; curr++){
+    for(curr=0; curr<(int)(number_of_lines/2); curr++){
         delta = fabs(V[curr][0]- V[curr+1][0]);
-        if(curr ==0) max_delta = delta;
-        if(max_delta <delta || curr ==0){
+        if(max_delta < delta){
             max_delta = delta;
-            k = curr+1;
+            k = curr;
         }
     }
-    return k;
+    return k+1;
 }
 
 /*transpose a matrix
@@ -645,14 +644,12 @@ double** Spkmeans (int* row, int*col, char* input_filename, int purpose, int k_f
     if(purpose != jacobi){
         W = weighted_adjacency_matrix(X,number_of_lines,number_of_cords);
         if(W == NULL) return NULL;
-        /*print_matrix(W,number_of_lines,number_of_lines,"w");*/
         if(purpose == wam){
             return W;
         }
 
         D = diagonal_degree_matrix(W,number_of_lines);
         if(D == NULL) return NULL;
-        /*print_matrix(D_asMatrix(D,number_of_lines),number_of_lines,number_of_lines,"D");*/
         if(purpose== ddg){
             free_memory_of_matrix(W,number_of_lines);
             return D_asMatrix(D,number_of_lines);
@@ -660,7 +657,6 @@ double** Spkmeans (int* row, int*col, char* input_filename, int purpose, int k_f
 
         Lnorm = calculate_Lnorm(D,W,number_of_lines);
         if(Lnorm == NULL) return NULL;
-        /*print_matrix(Lnorm,number_of_lines,number_of_lines,"Lnorm");*/
         if(purpose ==lnorm){
             free(D);
             free_memory_of_matrix(W, number_of_lines);
@@ -670,14 +666,12 @@ double** Spkmeans (int* row, int*col, char* input_filename, int purpose, int k_f
         
         eigen_values_vectors = Jacobi_algorithm(&res_row,&res_col,number_of_lines,Lnorm);
         if(eigen_values_vectors == NULL) return NULL;
-        /*print_matrix(eigen_values_vectors,k_from_py,res_col,"jacobi");*/
-        /*print_matrix(transpose(eigen_values_vectors,res_row,res_col),res_col,res_row, "V");*/
-            
+
         *row = res_row;
         *col = res_col;
 
         qsort(eigen_values_vectors,res_row,sizeof(double*),comarator);
-        /*print_matrix(eigen_values_vectors,k_from_py,res_col,"eigen_values_vectors after sort");*/
+        
         if(k_from_py==0){
             k = find_k(eigen_values_vectors,res_row);
             if(k ==1 || k == 0){
@@ -691,12 +685,10 @@ double** Spkmeans (int* row, int*col, char* input_filename, int purpose, int k_f
         /*U- containing the eigenvectors u1, . . . , uk of Lnorm as columns */
         k_eigenvectors = create_eigenvectors_matrix(eigen_values_vectors,res_col,k);
         if(k_eigenvectors == NULL)return NULL;
-        
+                
         T = normalize_U(k_eigenvectors,res_col-1,k);
         if(T == NULL) return NULL;
-       
-        /*print_matrix(T,res_col-1,k,"T");*/
-        
+               
         *row = res_col-1;
         *col = k;
         return T;
