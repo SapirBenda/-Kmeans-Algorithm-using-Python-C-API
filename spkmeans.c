@@ -24,7 +24,7 @@ int initial_rows(double** W, int number_of_lines,int number_of_columns);
 double compute_wij(double* xi, double* xj, int number_of_cords);
 double** weighted_adjacency_matrix(double** X, int number_of_lines,int number_of_cord);
 double degree_of_line_i(double* line, int number_of_cords);
-double* raise_D_minus_half(double* D, int number_of_lines);
+void raise_D_minus_half(double* D, int number_of_lines);
 double* diagonal_degree_matrix(double** W, int number_of_lines);
 double** subtract_M_from_I(double** M, int number_of_lines);
 void array_matrix_representation(double** mult, double**W, double* D, int row, int column);
@@ -308,6 +308,7 @@ double** Jacobi_algorithm(int* res_row, int*res_col, int n,double **A){
     free_memory_of_matrix(tmp_V,n);
     free_memory_of_matrix(A_clone,n);
     free_memory_of_matrix(A_tag,n);
+    free_memory_of_matrix(A,n);
 
     return jacobi_res;
 
@@ -370,12 +371,12 @@ double degree_of_line_i(double* line, int number_of_cords){
 }
 
 /*compute D^(-0.5) -> for every element d in the main diagonal of D calculate d^(-0.5)*/
-double* raise_D_minus_half(double* D, int number_of_lines){
+void raise_D_minus_half(double* D, int number_of_lines){
     int row;
     for(row =0; row<number_of_lines;row++){
-        D[row] = pow(D[row], -0.5);
+        /*D[row] = pow(D[row], -0.5);*/
+        D[row] = 1/sqrt(D[row]);
     }
-    return D;
 }
 
 /*creates the diagonal degree matrix
@@ -407,6 +408,7 @@ double** subtract_M_from_I(double** M, int number_of_lines){
             }
         }
     }
+    free_memory_of_matrix(M,number_of_lines);
     return sub;
 }
 
@@ -493,6 +495,7 @@ double** create_eigenvectors_matrix(double** V, int number_of_cords, int number_
             U[row][columns-1] = V[row][columns];
         }
     }
+    free_memory_of_matrix(V,number_of_lines);
     U = transpose(U,number_of_lines,number_of_cords-1);
     return U;
 }
@@ -563,15 +566,14 @@ void printmatrix(double** matrix, int number_of_rows,int number_of_columns){
 /*calculate Lnorm = I - D^(-0.5)WD^(-0.5)
 if didn't succeed returns NULL */
 double** calculate_Lnorm(double* D, double**W, int number_of_lines){
-   double** temp;
-    D = raise_D_minus_half(D,number_of_lines);
-    temp = mult_matrices(W,D,number_of_lines,array_matrix_representation);
-    if(temp == NULL) return NULL;
-    temp = mult_matrices(temp,D,number_of_lines, matrix_array_representation);
-    if(temp == NULL) return NULL;
-    free(D);
-    free_memory_of_matrix(W,number_of_lines);
-    return subtract_M_from_I(temp,number_of_lines);
+   double** temp1, **temp2;
+    raise_D_minus_half(D,number_of_lines);
+    temp1 = mult_matrices(W,D,number_of_lines,array_matrix_representation);
+    if(temp1 == NULL) return NULL;
+    temp2 = mult_matrices(temp1,D,number_of_lines, matrix_array_representation);
+    if(temp2 == NULL) return NULL;
+    free_memory_of_matrix(temp1,number_of_lines);
+    return subtract_M_from_I(temp2,number_of_lines);
 }
 
 /*Turns an array that represents a diagonal of a matrix into a matrix
@@ -590,6 +592,7 @@ double** D_asMatrix(double* D, int rows){
                 D_matrix[row][col] = 0;
         }
     }
+    free(D);
     return D_matrix;
 }
 
@@ -622,7 +625,7 @@ void fix_zeros(double** V, int number_of_columns){
 if didn't succeed returns NULL*/
 double** Spkmeans (int* row, int*col, char* input_filename, int purpose, int k_from_py){
     int number_of_cords, number_of_lines,k,res_row,res_col,symmetric;
-    double **X, **W, **Lnorm, **eigen_values_vectors, **k_eigenvectors;
+    double **X, **W, **Lnorm, **eigen_values_vectors, **k_eigenvectors,**T,**Jacobi;
     double *D ;
     FILE *data_file;
 
@@ -651,6 +654,7 @@ double** Spkmeans (int* row, int*col, char* input_filename, int purpose, int k_f
         if(D == NULL) return NULL;
         /*print_matrix(D_asMatrix(D,number_of_lines),number_of_lines,number_of_lines,"D");*/
         if(purpose== ddg){
+            free_memory_of_matrix(W,number_of_lines);
             return D_asMatrix(D,number_of_lines);
         }
 
@@ -658,6 +662,8 @@ double** Spkmeans (int* row, int*col, char* input_filename, int purpose, int k_f
         if(Lnorm == NULL) return NULL;
         /*print_matrix(Lnorm,number_of_lines,number_of_lines,"Lnorm");*/
         if(purpose ==lnorm){
+            free(D);
+            free_memory_of_matrix(W, number_of_lines);
             return Lnorm;
         }
         /*goal = spk*/
@@ -685,19 +691,15 @@ double** Spkmeans (int* row, int*col, char* input_filename, int purpose, int k_f
         /*U- containing the eigenvectors u1, . . . , uk of Lnorm as columns */
         k_eigenvectors = create_eigenvectors_matrix(eigen_values_vectors,res_col,k);
         if(k_eigenvectors == NULL)return NULL;
-
-        /*print_matrix(k_eigenvectors,res_col-1,k,"U");*/
-
-        free_memory_of_matrix(eigen_values_vectors,res_row);
         
-        k_eigenvectors = normalize_U(k_eigenvectors,res_col-1,k);
-        if(k_eigenvectors == NULL) return NULL;
+        T = normalize_U(k_eigenvectors,res_col-1,k);
+        if(T == NULL) return NULL;
        
-        /*print_matrix(k_eigenvectors,res_col-1,k,"T");*/
+        /*print_matrix(T,res_col-1,k,"T");*/
         
         *row = res_col-1;
         *col = k;
-        return k_eigenvectors;
+        return T;
     }
 
     /*purpose == jacobi*/ 
@@ -711,17 +713,17 @@ double** Spkmeans (int* row, int*col, char* input_filename, int purpose, int k_f
     *row = res_row;
     *col = res_col;
 
-    eigen_values_vectors= transpose(eigen_values_vectors,res_row,res_col); 
+    Jacobi= transpose(eigen_values_vectors,res_row,res_col); 
    
-    if(eigen_values_vectors == NULL) return NULL;
+    if(Jacobi == NULL) return NULL;
 
     *row = res_col;
     *col = res_row;
 
-    /*print_matrix(eigen_values_vectors,*row,*col,"jacobi in C");*/
-    fix_zeros(eigen_values_vectors,*col);
+    /*print_matrix(Jacobi,*row,*col,"jacobi in C");*/
+    fix_zeros(Jacobi,*col);
 
-    return eigen_values_vectors;
+    return Jacobi;
      
 }
 
@@ -755,7 +757,7 @@ int submit_args_spkmeans(int argc, char **argv, char **input_file, int *goal){
 
 int main(int argc, char** argv){
     int goal,row,col,s;
-    char* filename = (char*)malloc(sizeof(char*));
+    char* filename;
     double** mat;
     s = submit_args_spkmeans(argc,argv,&filename,&goal);
     if(s==1)
@@ -767,6 +769,8 @@ int main(int argc, char** argv){
         return 1;
     }
     printmatrix(mat,row,col);
+    free_memory_of_matrix(mat,row);
+
     return 0 ;
 }
 

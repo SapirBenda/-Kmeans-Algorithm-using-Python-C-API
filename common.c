@@ -16,18 +16,15 @@ double** read_data_from_file(FILE* fp, int number_of_cord, int number_of_lines){
     rewind(fp);
     line = (char*)calloc(2000000,sizeof(char));
     if (line == NULL || X == NULL){
-        printf("An Error Has Occurred");
         return NULL;
     }
     for(line_number =0 ; line_number < number_of_lines; line_number++){
         curr_number_start = line;
         if(fscanf(fp, "%s",line)== EOF){
-            printf("An Error Has Occurred");
             return NULL;
         }
         xi = (double*) calloc(number_of_cord,sizeof(double));
         if (xi == NULL){
-            printf("An Error Has Occurred");
             return NULL;
         }
         X[line_number]= read_line_into_xi(number_of_cord,curr_number_start,xi);
@@ -60,7 +57,8 @@ double euqlide_norm(double* xi, double* xj, int number_of_cords){
         power = pow(fabs(xi[i] - xj[i]),2);
         sum += power;
     }
-    sum = pow(sum,0.5);
+    /*sum = pow(sum,0.5);*/
+    sum = sqrt(sum);
     return sum;
 }
 
