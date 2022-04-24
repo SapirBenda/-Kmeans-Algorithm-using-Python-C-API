@@ -50,7 +50,6 @@ void fix_zeros(double** V, int number_of_columns);
 void mult_mats_for_jacobi(int n,double **X, double **Y, double **dest){
     double sum;
     int i,j,k;
-
     for ( i = 0; i < n; ++i) {
         for ( j = 0; j < n; ++j) {
 
@@ -80,13 +79,10 @@ void calc_c_and_t(double **A, int i, int j, double *c, double *s){
     double t = sign(theta)/(fabs(theta) + sqrt(pow(theta,2) + 1));
     *c = (1)/(sqrt(pow(t,2) + 1));
     *s = (*c)*t;
-
 }
 
 /* finds pivot for jacobi algorithm, asserts n>1 */
 int find_Pivot(int n,double **A, int *i, int *j){
-
-
     int row,col;
     double max_val = 0;
     *i = 0, *j = 1;
@@ -112,9 +108,7 @@ int find_Pivot(int n,double **A, int *i, int *j){
 
 /* reset mat to 0 matrix */
 void reset_mat(int n,double **mat){
-
     int i,j;
-
     for (i = 0;  i < n ; i++) {
         for (j = 0; j < n; ++j) {
             mat[i][j] = 0;
@@ -133,7 +127,6 @@ double calc_off2(int n,double **mat){
     }
 
     sum *=2;
-
     return sum;
 }
 
@@ -150,7 +143,6 @@ void copy_mat(int n, double** src,double **dest){
 /* init X as I mat */
 void init_Imat(int n,double **X){
     int i;
-
     reset_mat(n,X);
     for ( i = 0; i < n; ++i) {
         X[i][i] = 1;
@@ -169,9 +161,7 @@ int Build_P_and_A_tag(int n,double **A, double **A_tag, double **P){
     if(find_Pivot(n,A, &i, &j) == -1)
         return -1;
     calc_c_and_t(A , i, j, &c, &s);
-
     init_Imat(n,P);
-
     P[i][i] = c;
     P[i][j] = s;
     P[j][i] = -s;
@@ -185,7 +175,6 @@ int Build_P_and_A_tag(int n,double **A, double **A_tag, double **P){
                 A_tag[k][j] = (c * A[k][j]) + (s * A[k][i]);
                 A_tag[j][k] = A_tag[k][j];
         }
-
     A_tag[i][i] = (pow(c,2) * A[i][i]) + (pow(s,2) * A[j][j]) - (2 * s * c * A[i][j]);
     A_tag[j][j] = (pow(s,2) * A[i][i]) + (pow(c,2) * A[j][j]) + (2 * s * c * A[i][j]);
     A_tag[i][j] = 0;
@@ -217,12 +206,10 @@ double ** duplicate_mat(int n, double** mat){
 
 /* preform A swap, expect pointers to matrices */
 void swap_mats(double ***X,double ***Y){
-
     double **tmp;
     tmp = *X;
     *X = *Y;
     *Y = tmp;
-
 }
 
 /* free memory of matrix */
@@ -439,7 +426,7 @@ double** mult_matrices(double** M, double* D, int number_of_lines, void represen
 }
 
 
-int comarator(const void* row1, const void* row2){
+int comparator(const void* row1, const void* row2){
     double* line1 = *(double* const*)row1;
     double* line2 = *(double* const*)row2;
     if(line1[0]>line2[0]) return 1;
@@ -533,21 +520,6 @@ double** normalize_U(double** U, int number_of_lines, int number_of_columns){
 }
 
 
-/*Auxiliary function that prints matrices*/
-void print_matrix(double** matrix, int number_of_rows,int number_of_columns,char* name_of_matrix){
-    int row,column;
-    printf("~~~~~~~~~~~~~~~~~~~~ %s ~~~~~~~~~~~~~~~~~~~~\n", name_of_matrix);
-    for(row=0;row<number_of_rows;row++){
-        for(column=0;column<number_of_columns;column++){
-            if(column!=number_of_columns-1){
-                printf("%.4f,",matrix[row][column]);
-            }else{
-                printf("%.4f\n",matrix[row][column]);
-            }
-        }
-    }
-    printf("\n");
-}
 /*Auxiliary function that prints matrices*/
 void printmatrix(double** matrix, int number_of_rows,int number_of_columns){
     int row,column;
@@ -662,15 +634,15 @@ double** Spkmeans (int* row, int*col, char* input_filename, int purpose, int k_f
             free_memory_of_matrix(W, number_of_lines);
             return Lnorm;
         }
-        /*goal = spk*/
         
+        /*goal = spk*/
         eigen_values_vectors = Jacobi_algorithm(&res_row,&res_col,number_of_lines,Lnorm);
         if(eigen_values_vectors == NULL) return NULL;
 
         *row = res_row;
         *col = res_col;
 
-        qsort(eigen_values_vectors,res_row,sizeof(double*),comarator);
+        qsort(eigen_values_vectors,res_row,sizeof(double*),comparator);
         
         if(k_from_py==0){
             k = find_k(eigen_values_vectors,res_row);
@@ -697,22 +669,16 @@ double** Spkmeans (int* row, int*col, char* input_filename, int purpose, int k_f
     /*purpose == jacobi*/ 
     symmetric = check_input_symmetric_matrix(X,number_of_lines,number_of_cords);
     if(symmetric == -1) return NULL;
-    /*print_matrix(X,number_of_lines,number_of_cords,"input Lnorm = X");*/
+    
     eigen_values_vectors = Jacobi_algorithm(&res_row,&res_col,number_of_lines,X);
     if(eigen_values_vectors == NULL) return NULL;
-    /*print_matrix(eigen_values_vectors,res_row,res_col,"jacobi before transpose");*/
-            
-    *row = res_row;
-    *col = res_col;
 
     Jacobi= transpose(eigen_values_vectors,res_row,res_col); 
-   
     if(Jacobi == NULL) return NULL;
 
     *row = res_col;
     *col = res_row;
 
-    /*print_matrix(Jacobi,*row,*col,"jacobi in C");*/
     fix_zeros(Jacobi,*col);
 
     return Jacobi;
@@ -762,7 +728,6 @@ int main(int argc, char** argv){
     }
     printmatrix(mat,row,col);
     free_memory_of_matrix(mat,row);
-
     return 0 ;
 }
 

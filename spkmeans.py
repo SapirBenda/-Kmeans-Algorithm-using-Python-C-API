@@ -73,16 +73,11 @@ def create_mus_file(filename, data):
 
 
 def find_mus(indexes, cols, np_data,k, rows):
-    # print("k = ", k)
     mus_indexes = []
     mus = np.zeros([k, cols - 1])
     chosen_xi = np.random.choice(indexes)
     mus_indexes.append(chosen_xi)
     row_by_index_d = create_row_by_index_d(np_data)
-    
-    # print(row_by_index_d)
-    # print("chossen_xi = ", chosen_xi)
-    # print("row_by_index_d[chosen_xi] =", row_by_index_d[chosen_xi] )
 
     mus[0] = row_by_index_d[chosen_xi]
     for i in range(1, k):
@@ -91,23 +86,9 @@ def find_mus(indexes, cols, np_data,k, rows):
         chosen_xi = np.random.choice(indexes, p=probs_arr)
         mus[i] = row_by_index_d[chosen_xi]
         mus_indexes.append(chosen_xi)
-        # print("mus int iter ",i," = ")
-        # print(mus)
+
     mus_indexes_str = [(str(cord)) for cord in mus_indexes]
     return mus_indexes_str, mus
-
-
-# def create_data_from_input_files(input_filename):
-#     try:
-#         data = pd.read_csv(input_filename, sep=",", header=None)
-#         np_data = data.to_numpy()
-#         k =int(np_data[0][1])
-#         np_data = np.delete(np_data, (0), axis=0)
-#     except:
-#         print("Invalid Input3!")
-#         return 1
-#     return [k,np_data]
-
 
 def create_indexes(np_data):
     indexes = np_data[:, 0].astype(int)
@@ -117,59 +98,36 @@ def create_indexes(np_data):
 
 def k_means_pp(matrix):
     np.random.seed(0)
-    # print("~~~~~~~~~~~~~~~~ hello kmean ++ In Python ~~~~~~~~~~~~~~~~")
     matrix = np.array(matrix)
     rows_number = len(matrix)
     k = len(matrix[0])
     indexes = np.arange(rows_number)
     matrix = np.insert(matrix,0,indexes,axis =1)
-    # print("matrix after numpy and indexing: ")
-    # print(matrix)
-    # print()
-
     cols_number = len(matrix[0])
-
     mus_indexes_str, mus = find_mus(indexes, cols_number, matrix,k, rows_number)
-    # print("mus after find mus = ")
-    # print(mus)
-    # print()
-    
     create_mus_file("mus_file.txt", mus)
-
-    #prints the chosen indexes
     print(','.join(mus_indexes_str))
     return mus
 
 
 def submit_args():
     if len(sys.argv) != 4:
-        print("Invalid Input!")
+        print("Invalid Input!",end="")
         return 1
     try:
         k = int(sys.argv[1])
         goal = sys.argv[2]
-        # print()
-        # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ", goal, " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
         intgoal = int(goals[goal].value)
         input_filename = sys.argv[3]
-        
-        # print("input_filename = ", input_filename)
-        # print("k = ",k)
-        # print("goal = ", goal)
-        
-        
-
         f_input_1 = open(input_filename,"r")
         length_file = len(f_input_1.readlines())
         if k == 1 or k < 0 or k>=length_file:
-            print("Invalid Input!")
+            print("Invalid Input!",end="")
             return 1
-        
-        
         f_input_1.close()
 
     except (ValueError,KeyError ,OSError):
-        print("Invalid Input!")
+        print("Invalid Input!",end="")
         return 1
     return k, intgoal, input_filename
 
@@ -193,16 +151,16 @@ def main():
                 else: print_file("data_from_kmeans_c.txt")
             else:
                 matrix = np.array(matrix)
-                if goal ==4 : # goal = jacobi
+                if goal == 4 : # goal = jacobi
                     print_jacobi_matrix(matrix)
                 else: # gaol = wam / ddg / lnorm
                     print_matrix(matrix)    
             return 0   
         else: # matrix from Spkmeans = NULL
-            print('An Error Has Occurred')
+            print('An Error Has Occurred',end="")
             return 1
     except Exception as e:
-        print('An Error Has Occurred')
+        print('An Error Has Occurred',end="")
         return 1
     
 

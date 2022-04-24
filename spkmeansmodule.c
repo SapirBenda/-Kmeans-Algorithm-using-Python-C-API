@@ -2,6 +2,15 @@
 #include "spkmeansmodule.h"
 #include "spkmeans.h"
 
+/* free memory of matrix */
+void free_memory_of_matrix1(double** matrix,int number_of_rows){
+    int i;
+    for(i=0; i<number_of_rows; i++){
+        free(matrix[i]);
+    }
+    free(matrix);
+}
+
 PyObject *c_matrix_to_python_matrix(int rows, int cols, double **c_mat) {
     PyObject *py_mat;
     PyObject *py_list;
@@ -18,6 +27,7 @@ PyObject *c_matrix_to_python_matrix(int rows, int cols, double **c_mat) {
 
         PyList_SetItem(py_mat, row, py_list);
     }
+    free_memory_of_matrix1(c_mat,rows);
 
     return py_mat;
 }
@@ -92,32 +102,4 @@ PyInit_mykmeanssp(void){
         return NULL;
     }
     return m;
-}
-
-double **python_matrix_to_c_matrix(int rows, int cols, PyObject *py_mat) {
-    double **c_mat;
-    int row, col;
-    PyObject *py_list, *item;
-
-    c_mat = (double**)calloc(rows, sizeof(double*));
-    if(c_mat == NULL){
-        printf("An Error Has Occurred\n");
-        return NULL;
-    }
-    initial_rows(c_mat,rows,cols);
-
-    for (row = 0; row < rows; row++) {
-        py_list = PyList_GetItem(py_mat, row);
-
-        for (col = 0; col < cols; col++) {
-            item = PyList_GetItem(py_list, col);
-            c_mat[row][col] = PyFloat_AsDouble(item);
-        }
-    }
-
-    return c_mat;
-}
-
-double **python_square_matrix_to_c_square_matrix(int order, PyObject *py_mat) {
-    return python_matrix_to_c_matrix(order, order, py_mat);
 }
